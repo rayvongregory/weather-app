@@ -1,0 +1,88 @@
+.bg {
+    min-height: 100vh;
+    padding: 30px 0;
+    background-image: url("../../public/images/background-images/pexels-anna-tarazevich-5481201.jpg");
+    background-size: cover;
+    mix-blend-mode: color;
+}
+
+header {
+    max-width: 576px;
+    margin: 0 20px 1rem;
+    border-radius: 5px;
+    border: 1px solid var(--black);
+    color: var(--black);
+    background-color: var(--white);
+    font-family: "Quicksand", Arial, Helvetica, sans-serif;
+    text-align: center;   
+}
+
+header > * {
+    opacity: 0;
+    transition: opacity 0.5s ease-in 0.5s;
+}
+
+header.reveal > * {
+    opacity: 1;
+}
+
+header h1 {
+    padding: 10px;
+    font-size: 21px;
+}
+
+header h2 {
+    padding: 0 10px;
+    font-size: 20px;
+}
+
+header p {
+    margin-bottom: 10px;
+    font-family: "Montserrat", Arial, Helvetica, sans-serif;
+}
+
+#change {
+    position: relative;
+    top: -25px;
+    display: block;
+    margin: 0 auto 16px;
+    padding: 10px 20px;
+    border-radius: 25px;
+    border: 1px solid var(--black);
+    background-color: var(--white);
+    font-family: "Roboto", Arial, Helvetica, sans-serif;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s linear 0.5s, top 0.5s ease-out 0.5s;
+}
+
+header.reveal + #change {
+    top: 0;
+    opacity: 1;
+    pointer-events: all;
+}
+
+#change:active {
+    filter: brightness(0.90);
+    transform: scale(0.99);
+}
+
+@media (min-width:616px) {
+    header {
+        margin: 0 auto 1rem;
+    }
+}
+
+/* @media (min-width: 576px) {
+    header h1 {
+        font-size: 40px;
+    }
+}
+
+@media (min-width:992px) {
+    header {
+        width: 600px;
+    }
+    
+} */

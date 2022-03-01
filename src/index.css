@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300&family=Quicksand:wght@300&display=swap');
+
+
+*, 
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --blue: #d7edf7;
+  --neutral: #f4f5f9;
+  --tomato: #ec6e4c;
+  --black: #303030;
+  --neutralGold: #f9e7c2;
+  --white: rgba(255, 255, 255, 0.8);
+}
+
+body {
+  scrollbar-width: none;
+}
+::-webkit-scrollbar {
+  width: 0%;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
