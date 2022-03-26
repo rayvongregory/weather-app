@@ -1,165 +1,264 @@
 import axios from "axios"
-import React, { Component } from "react"
-import Header from "./scripts/Header"
-import Weather from "./scripts/Weather"
+import { useState, useEffect, useCallback } from "react"
 import ChangeLocation from "./scripts/ChangeLocation"
+import CurrentLocation from "./scripts/CurrentLocation"
 
-class App extends Component {
-  constructor() {
-    super()
-    this.state = {
-      changing_location: false,
-      data_collection_info: [
-        { placeholder: "Country", id: "country", url: "/change-location/" },
-      ],
-      country_name: "",
-      country_code: "",
-      firstLvlDiv: "",
-      secondLvlDiv: "",
-      thirdLvlDiv: "",
-      firstLvlDivType: "",
-      secondLvlDivType: "",
-      thirdLvlDivType: "",
-      first_level_subdivision_id: "",
-      first_level_subdivision_type_id: "",
-      city: "",
-      state: "",
-      description: "",
-      feels_like: "",
-      temp: "",
-      temp_max: "",
-      temp_min: "",
-      icon: "",
-      humidity: "",
-      wind_speed: "",
-      time_calculated: "",
-      pressure_hPa: "",
-      pressure_inHg: "",
-      sun_has_risen: false,
-      sun_has_set: false,
-      sunrise: "",
-      sunset: "",
-      time_until_sunrise: "",
-      time_until_sunset: "",
-    }
-    this.getRegionInfo = this.getRegionInfo.bind(this)
-    this.getFirstLvlDivisionType = this.getFirstLvlDivisionType.bind(this)
-    this.getSecondLvlDivisionType = this.getSecondLvlDivisionType.bind(this)
-    this.handleLocationChange = this.handleLocationChange.bind(this)
-    this.returnData = this.returnData.bind(this)
-  }
+const CURRENT_LOCATION = {
+  city: "",
+  state: "",
+  description: "",
+  feels_like: "",
+  temp: "",
+  temp_max: "",
+  temp_min: "",
+  icon: "",
+  humidity: "",
+  wind_speed: "",
+  time_calculated: "",
+  pressure_hPa: "",
+  pressure_inHg: "",
+  sun_has_risen: false,
+  sun_has_set: false,
+  sunrise: "",
+  sunset: "",
+  time_until_sunrise: "",
+  time_until_sunset: "",
+}
 
-  componentDidMount() {
-    this.getRegionInfo()
-  }
+const NEW_LOCATION = {
+  country_name: "",
+  country_code: "",
+  db_country_name: "",
+  firstLvlDiv: "",
+  secondLvlDiv: "",
+  thirdLvlDiv: "",
+  firstLvlDivType: "",
+  secondLvlDivType: "",
+  thirdLvlDivType: "",
+  fourthLvlDivType: "",
+  first_level_subdivision_id: "",
+  first_level_subdivision_type_id: "",
+  second_level_subdivision_id: "",
+  second_level_subdivision_type_id: "",
+  second_level_subdivision_type_name: "",
+  third_level_subdivision_id: "",
+  third_level_subdivision_type_id: "",
+  fourth_level_subdivision_id: "",
+  fourth_level_subdivision_type_id: "",
+  lat: "",
+  lon: "",
+}
 
-  componentDidUpdate(prevProps, prevState) {
-    switch (true) {
-      case this.state.country_code !== prevState.country_code:
-        this.getFirstLvlDivisionType()
-        break
-      case this.state.firstLvlDiv !== prevState.firstLvlDiv:
-        this.getSecondLvlDivisionType()
-        break
-      default:
-        break
-    }
-  }
+const DATA_COLLECTION_INFO = [
+  { placeholder: "Country", id: "country", url: "/change-location/" },
+]
 
-  getFirstLvlDivisionType() {
+// convert this to a function component using hooks
+
+const App = () => {
+  const [currentLocation, setCurrentLocation] = useState(CURRENT_LOCATION)
+  const [changingLocation, setChangingLocation] = useState(false)
+  const [newLocation, setNewLocation] = useState(NEW_LOCATION)
+  const [dataCollectionInfo, setDataCollectionInfo] =
+    useState(DATA_COLLECTION_INFO)
+  const [newLocationName, setNewLocationName] = useState()
+
+  const getNewLocationWeather = useCallback((lat, lon, locationName) => {
     axios.defaults.baseURL =
       window.location.protocol + "//" + window.location.hostname + ":" + 3001
-    axios
-      .get(`/change-location/${this.state.country_name}/fldt`)
-      .then((response) => {
-        const { type } = response.data
-        this.setState({
-          firstLvlDivType: type,
-          data_collection_info: [
-            { placeholder: "Country", id: "country", url: "/change-location/" },
-            {
-              placeholder: type,
-              id: "first_level_subdivision",
-              url: `/change-location/${this.state.country_name
-                .toLowerCase()
-                .replaceAll(" ", "_")}/`,
-            },
-          ],
-        })
+    axios.get(`/lat/${lat}/lon/${lon}`).then((response) => {
+      setNewLocationName(locationName)
+      const confirmOrEdit = document.createElement("p")
+      const confirmBtn = document.createElement("button")
+      confirmBtn.innerText = `Click here to see the weather in ${locationName}`
+      confirmBtn.addEventListener("pointerup", () => {
+        handleLocationChange(false)
+        setCurrentLocation(Object.assign({ city: locationName }, response.data))
       })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
-  getSecondLvlDivisionType() {
-    axios.defaults.baseURL =
-      window.location.protocol + "//" + window.location.hostname + ":" + 3001
-    axios
-      .get(
-        `/change-location/${this.state.country_name}/sldt/${this.state.first_level_subdivision_id}`
-      )
-      .then((response) => {
-        const { type } = response.data
-        console.log(type)
-        const { firstLvlDivType } = this.state
-        this.setState({
-          secondLvlDivType: type,
-          data_collection_info: [
-            { placeholder: "Country", id: "country", url: "/change-location/" },
-            {
-              placeholder: firstLvlDivType,
-              id: "first_level_subdivision",
-              url: `/change-location/${this.state.country_name
-                .toLowerCase()
-                .replaceAll(" ", "_")}/`,
-            },
-            {
-              placeholder: type,
-              id: "second_level_subdivision",
-              url: `/change-location/${this.state.country_name
-                .toLowerCase()
-                .replaceAll(" ", "_")}/${
-                this.state.first_level_subdivision_id
-              }/`,
-            },
-          ],
-        })
-      })
-      .catch((err) => {
-        console.log(err)
-      })
-  }
-
-  returnData(vals) {
-    let obj = {}
-    vals.forEach((val) => {
-      Object.assign(obj, val)
+      confirmOrEdit.appendChild(confirmBtn)
+      confirmOrEdit.insertAdjacentText("beforeend", " or continue editing.")
+      document.querySelector(".change-location-form").appendChild(confirmOrEdit)
     })
-    this.setState(obj)
-    setTimeout(() => {}, 0)
-  }
+  }, [])
 
-  getRegionInfo() {
+  useEffect(() => {
+    //!gets the current location's info
     axios.defaults.baseURL =
       window.location.protocol + "//" + window.location.hostname + ":" + 3001
     axios.get("/").then((response) => {
       console.log(response.data)
-      this.setState(response.data)
+      setCurrentLocation(response.data)
     })
-  }
+  }, [])
 
-  handleLocationChange(bool = true) {
+  useEffect(() => {
+    //! gets first level division type
+    const country_name = newLocation.country_name
+    const db_country_name = newLocation.db_country_name
+    if (!country_name) return
+    axios.defaults.baseURL =
+      window.location.protocol + "//" + window.location.hostname + ":" + 3001
+    axios
+      .get(`/change-location/${db_country_name}/fldt`)
+      .then((response) => {
+        const { type } = response.data
+        setNewLocation((prev) => {
+          return { ...prev, firstLvlDivType: type }
+        })
+        setDataCollectionInfo((prev) => {
+          return [
+            ...prev,
+            {
+              placeholder: type,
+              id: "first_level_subdivision",
+              url: `/change-location/${db_country_name}/`,
+            },
+          ]
+        })
+      })
+      .catch((err) => {
+        console.log("no data for this location")
+        console.log(err.response.data)
+      })
+  }, [
+    getNewLocationWeather,
+    newLocation.country_name,
+    newLocation.db_country_name,
+  ])
+
+  useEffect(() => {
+    //! gets the second level division type
+    //check for lat lon and first
+    //if all exist AND second does not exist, getNewWeather
+    const firstLvlDiv = newLocation.firstLvlDiv
+    const secondLvlDiv = newLocation.secondLvlDiv
+    if (!firstLvlDiv || secondLvlDiv) return
+    const lat = newLocation.lat
+    const lon = newLocation.lon
+    const thirdLvlDiv = newLocation.thirdLvlDiv
+    if (lat && lon && firstLvlDiv && !secondLvlDiv) {
+      return getNewLocationWeather(lat, lon, firstLvlDiv)
+    }
+    if (lat && lon && firstLvlDiv && secondLvlDiv && !thirdLvlDiv) {
+      return getNewLocationWeather(lat, lon, secondLvlDiv)
+    }
+    const db_country_name = newLocation.db_country_name
+    const first_level_subdivision_id = newLocation.first_level_subdivision_id
+    axios.defaults.baseURL =
+      window.location.protocol + "//" + window.location.hostname + ":" + 3001
+    axios
+      .get(
+        `/change-location/${db_country_name}/sldt/${first_level_subdivision_id}`
+      )
+      .then((response) => {
+        const { type } = response.data
+        setNewLocation((prev) => {
+          return {
+            ...prev,
+            secondLvlDivType: type,
+          }
+        })
+        setDataCollectionInfo((prev) => {
+          return [
+            ...prev,
+            {
+              placeholder: type,
+              id: "second_level_subdivision",
+              url: `/change-location/${db_country_name}/${first_level_subdivision_id}/`,
+            },
+          ]
+        })
+      })
+      .catch((err) => {
+        console.log("no data for this location")
+        console.log(err)
+      })
+  }, [
+    getNewLocationWeather,
+    newLocation.db_country_name,
+    newLocation.firstLvlDiv,
+    newLocation.secondLvlDiv,
+    newLocation.first_level_subdivision_id,
+    newLocation.lat,
+    newLocation.lon,
+    newLocation.thirdLvlDiv,
+  ])
+
+  useEffect(() => {
+    const lat = newLocation.lat
+    const lon = newLocation.lon
+    const secondLvlDiv = newLocation.secondLvlDiv
+    if (lat && lon && secondLvlDiv) {
+      return getNewLocationWeather(lat, lon, secondLvlDiv)
+    }
+    // getThirdLvlDivisionType
+    if (!secondLvlDiv) return
+    const db_country_name = newLocation.db_country_name
+    const second_level_subdivision_id = newLocation.second_level_subdivision_id
+    console.log("getting thirdLvlDivisionType")
+    axios.defaults.baseURL =
+      window.location.protocol + "//" + window.location.hostname + ":" + 3001
+    axios
+      .get(
+        `/change-location/${db_country_name}/tldt/${second_level_subdivision_id}/`
+      )
+      .then((response) => {
+        const { type } = response.data
+        console.log(type)
+        setNewLocation((prev) => {
+          return {
+            ...prev,
+            thirdLvlDivType: type,
+          }
+        })
+        setDataCollectionInfo((prev) => {
+          return [...prev].push({
+            placeholder: type,
+            id: "third_level_subdivision",
+            url: `/change-location/${db_country_name
+              .toLowerCase()
+              .replaceAll(" ", "_")}/${
+              newLocation.first_level_subdivision_id
+            }/${newLocation.second_level_subdivision_id}`,
+          })
+        })
+      })
+      .catch((err) => {
+        console.log("no data for this location")
+        console.log(err.response.data)
+      })
+  }, [
+    getNewLocationWeather,
+    newLocation.db_country_name,
+    newLocation.first_level_subdivision_id,
+    newLocation.lat,
+    newLocation.lon,
+    newLocation.secondLvlDiv,
+    newLocation.secondLvlDivType,
+    newLocation.second_level_subdivision_id,
+  ])
+
+  const handleLocationChange = (bool = true) => {
     switch (bool) {
       case true:
-        this.setState({ changing_location: bool })
+        setChangingLocation(bool)
         break
       default:
-        this.setState({
-          changing_location: bool,
-          data_collection_info: [
-            { placeholder: "Country", id: "country", url: "/change-location/" },
-          ],
+        setChangingLocation(bool)
+        const countryInput = document.querySelector("input")
+        const p = document.querySelector(".change-location-form p")
+        countryInput.value = ""
+        countryInput.removeAttribute("disabled")
+        countryInput.parentElement.classList.remove("float")
+        countryInput.nextElementSibling.classList.remove("exit")
+        if (countryInput.nextElementSibling.nextElementSibling) {
+          countryInput.nextElementSibling.nextElementSibling.remove()
+        }
+        if (p) p.remove()
+        setDataCollectionInfo([
+          { placeholder: "Country", id: "country", url: "/change-location/" },
+        ])
+        setNewLocation({
           country_name: "",
           country_code: "",
           firstLvlDiv: "",
@@ -173,47 +272,22 @@ class App extends Component {
         })
         break
     }
-    setTimeout(() => {
-      console.log(this.state)
-    }, 0)
   }
 
-  render() {
-    return (
-      <div className="bg">
-        <Header
-          city={this.state.city}
-          state={this.state.state}
-          handleLocationChange={this.handleLocationChange}
-        />
-        <Weather
-          description={this.state.description}
-          feels_like={this.state.feels_like}
-          temp={this.state.temp}
-          temp_max={this.state.temp_max}
-          temp_min={this.state.temp_min}
-          icon={this.state.icon}
-          sunrise={this.state.sunrise}
-          sunset={this.state.sunset}
-          sun_has_risen={this.state.sun_has_risen}
-          sun_has_set={this.state.sun_has_set}
-          time_until_sunrise={this.state.time_until_sunrise}
-          time_until_sunset={this.state.time_until_sunset}
-          humidity={this.state.humidity}
-          wind_speed={this.state.wind_speed}
-          time_calculated={this.state.time_calculated}
-          pressure_hPa={this.state.pressure_hPa}
-          pressure_inHg={this.state.pressure_inHg}
-        />
-        <ChangeLocation
-          changing_location={this.state.changing_location}
-          handleLocationChange={this.handleLocationChange}
-          data_collection_info={this.state.data_collection_info}
-          returnData={this.returnData}
-        />
-      </div>
-    )
-  }
+  return (
+    <div className="bg">
+      <CurrentLocation
+        currentLocation={currentLocation}
+        handleLocationChange={handleLocationChange}
+      />
+      <ChangeLocation
+        changingLocation={changingLocation}
+        handleLocationChange={handleLocationChange}
+        dataCollectionInfo={dataCollectionInfo}
+        setNewLocation={setNewLocation}
+      />
+    </div>
+  )
 }
 
 export default App

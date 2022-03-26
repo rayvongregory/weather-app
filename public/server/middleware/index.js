@@ -101,7 +101,11 @@ const getTimeUntil = (currentTime, newTime, event, req) => {
 }
 
 const getWeather = (req, res, next) => {
-  const { lat, lon } = req.body
+  let { lat, lon } = req.body
+  if (!lat && !lon) {
+    lat = req.params.lat
+    lon = req.params.lon
+  }
   http.get(
     {
       "host": "api.openweathermap.org",
@@ -117,6 +121,7 @@ const getWeather = (req, res, next) => {
           wind: { speed: windSpeed },
           dt: time_calculated,
           sys: { sunrise, sunset },
+          timezone,
         } = weatherData
         let currentTime = new Date()
         currentTime = new Date(
@@ -168,6 +173,7 @@ const getWeather = (req, res, next) => {
           pressure,
           windSpeed,
           time_calculated,
+          timezone,
         })
         next()
       })
@@ -344,6 +350,7 @@ const returnWeather = (req, res, next) => {
     sun_has_set,
     time_until_sunrise,
     time_until_sunset,
+    timezone,
   } = req.body
   res.status(StatusCodes.OK).json({
     city,
@@ -365,6 +372,7 @@ const returnWeather = (req, res, next) => {
     sun_has_set,
     time_until_sunrise,
     time_until_sunset,
+    timezone,
   })
 }
 

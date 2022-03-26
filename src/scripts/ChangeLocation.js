@@ -1,14 +1,12 @@
 import React, { Component } from "react"
 import axios from "axios"
 import DataCollectionWrapper from "./DataCollectionWrapper"
-
 import "../styles/ChangeLocation.css"
 
 class ChangeLocation extends Component {
   constructor(props) {
     super(props)
     this.state = {}
-
     this.subs = {
       a: "[AÀÁÂÃÄaàáâãä]",
       e: "[EÈÉÊËeèéêë]",
@@ -24,8 +22,6 @@ class ChangeLocation extends Component {
     this.returnToCurrentLocation = this.returnToCurrentLocation.bind(this)
   }
 
-  componentDidMount() {}
-
   componentDidUpdate() {
     if (!this.state.visible) {
       setTimeout(() => {
@@ -35,11 +31,6 @@ class ChangeLocation extends Component {
   }
 
   returnToCurrentLocation() {
-    const countryInput = document.querySelector("input")
-    countryInput.value = ""
-    countryInput.removeAttribute("disabled")
-    countryInput.parentElement.classList.remove("float")
-    countryInput.nextElementSibling.classList.remove("exit")
     this.props.handleLocationChange(false)
   }
 
@@ -115,20 +106,22 @@ class ChangeLocation extends Component {
   render() {
     return (
       <div
-        className="change_location_div"
-        show={`${this.props.changing_location}`}
+        className="change-location-layer"
+        show={`${this.props.changingLocation}`}
       >
-        {this.props.data_collection_info.map((el, i) => {
-          return (
-            <DataCollectionWrapper
-              key={i} // to satisy react
-              id={el.id}
-              placeholder={el.placeholder}
-              url={el.url}
-              returnData={this.props.returnData}
-            />
-          )
-        })}
+        <div className="change-location-form">
+          {this.props.dataCollectionInfo.map((el, i) => {
+            return (
+              <DataCollectionWrapper
+                key={i} // to satisy react
+                id={el.id}
+                placeholder={el.placeholder}
+                url={el.url}
+                setNewLocation={this.props.setNewLocation}
+              />
+            )
+          })}
+        </div>
         <button id="back" onClick={this.returnToCurrentLocation}>
           Back to current location
         </button>

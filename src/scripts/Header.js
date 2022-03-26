@@ -77,24 +77,14 @@ class Header extends Component {
     return (
       <>
         <header className={this.state.visible ? "reveal" : ""}>
-          <h1>
-            Today is {this.state.day},{" "}
-            <span className="nowrap">
-              {this.state.date}, {this.state.year}
-            </span>
-            .
-          </h1>
-          <h2>
-            {this.props.city},{" "}
-            <span className="nowrap">{this.props.state}</span>
-          </h2>
+          <p>{this.props.city}</p>
           <p>
             Last updated: <span className="nowrap">{this.state.time}</span>
           </p>
+          <button id="change" onClick={this.handleLocationChange}>
+            {this.state.btnText}
+          </button>
         </header>
-        <button id="change" onClick={this.handleLocationChange}>
-          {this.state.btnText}
-        </button>
       </>
     )
   }

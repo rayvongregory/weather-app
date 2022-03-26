@@ -7,28 +7,20 @@ class WeatherPanel3 extends Component {
   }
 
   componentDidUpdate() {
-    const flexwrapper = document.querySelector(".flex-wrapper")
-    if (!flexwrapper.classList.contains("reveal")) {
-      flexwrapper.classList.add("reveal")
-      flexwrapper.nextElementSibling.classList.add("reveal")
-      flexwrapper.nextElementSibling.nextElementSibling.classList.add("reveal")
-    }
+    const panel_3 = document.querySelector(".panel-wrapper:nth-of-type(3)")
+    if (!panel_3.classList.contains("reveal")) panel_3.classList.add("reveal")
   }
 
   render() {
     return (
-      <div className="panel">
-        <div className="flex-wrapper">
-          <span>Humidity</span>
+      <div className="panel-wrapper">
+        <div className="panel">
           <span>{this.props.humidity}%</span>
-        </div>
-        <div className="flex-wrapper">
-          <span>Wind Speed</span>
           <span className="nowrap">{this.props.wind_speed} MPH</span>
-        </div>
-        <div className="flex-wrapper">
-          <span>Pressure</span>
           <span className="nowrap">{this.props.pressure_inHg} inHg</span>
+          <span>Humidity</span>
+          <span>Wind Speed</span>
+          <span>Pressure</span>
         </div>
       </div>
     )

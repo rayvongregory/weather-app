@@ -1,20 +1,19 @@
 .bg {
     min-height: 100vh;
-    padding: 30px 0;
-    background-image: url("../../public/images/background-images/pexels-anna-tarazevich-5481201.jpg");
     background-size: cover;
     mix-blend-mode: color;
 }
 
 header {
+    display: grid;
+    grid-template-columns: 185px auto;
     max-width: 576px;
-    margin: 0 20px 1rem;
-    border-radius: 5px;
-    border: 1px solid var(--black);
+    margin-bottom: 0.1rem;
+    padding: 20px 10px 10px;
+    box-shadow: 0 1px 1px var(--borderColor);
     color: var(--black);
     background-color: var(--white);
     font-family: "Quicksand", Arial, Helvetica, sans-serif;
-    text-align: center;   
 }
 
 header > * {
@@ -26,38 +25,41 @@ header.reveal > * {
     opacity: 1;
 }
 
-header h1 {
-    padding: 10px;
-    font-size: 21px;
+header > :first-child {
+    max-width: 100%;
+    grid-column: 1/span 2;
+    font-size: 30px;
+    font-weight: 600;
+    padding-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-header h2 {
-    padding: 0 10px;
-    font-size: 20px;
-}
-
-header p {
-    margin-bottom: 10px;
+header > :nth-child(2) {
+    margin: auto 5px 2px 0;
+    font-size: 15px;
     font-family: "Montserrat", Arial, Helvetica, sans-serif;
 }
 
 #change {
-    position: relative;
-    top: -25px;
-    display: block;
-    margin: 0 auto 16px;
-    padding: 10px 20px;
+    padding: 3px 6px;
     border-radius: 25px;
-    border: 1px solid var(--black);
+    width: fit-content;
+    margin-left: auto;
+    border: 1px solid var(--borderColor);
     background-color: var(--white);
-    font-family: "Roboto", Arial, Helvetica, sans-serif;
+    color: rgba(0, 0, 0, 0.65);
+    font-family: "Quicksand", Arial, Helvetica, sans-serif;
+    font-weight: 600;
+    font-size: 13px;
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
+    white-space: nowrap;
     transition: opacity 0.5s linear 0.5s, top 0.5s ease-out 0.5s;
 }
 
-header.reveal + #change {
+header.reveal #change {
     top: 0;
     opacity: 1;
     pointer-events: all;

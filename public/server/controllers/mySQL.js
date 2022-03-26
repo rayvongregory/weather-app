@@ -3,31 +3,33 @@ const { StatusCodes } = require("http-status-codes")
 const mysql = require("mysql2/promise")
 const bluebird = require("bluebird")
 
-const connectToMySQL = async (req, res, next) => {
-  const connection = await mysql.createConnection({
-    host: "localhost",
-    user: process.env.SQL_USER,
-    password: process.env.SQL_PASS,
-    database: "countries",
-    Promise: bluebird,
-  })
-  req.body.connection = connection
-  next()
+const connection = mysql.createPool({
+  host: "localhost",
+  user: process.env.SQL_USER,
+  password: process.env.SQL_PASS,
+  database: "countries",
+  Promise: bluebird,
+  connectionLimit: 10,
+})
+
+const latLonFound = (result) => {
+  return result.lat ? true : false
 }
 
 const getCountriesStartingWith___ = async (req, res) => {
-  const { connection } = req.body
   const { country_name } = req.params
   const like = `"%${country_name}%"`
-  const [results] = await connection.execute(
-    "SELECT country_name, country_code FROM `countries`.`country_names` WHERE `country_name` LIKE " +
-      like +
-      "LIMIT 10"
-  )
-  if (!results) {
+  var results
+  try {
+    var [results] = await connection.execute(
+      "SELECT country_name, db_country_name, country_code FROM `countries`.`country_names` WHERE `country_name` LIKE " +
+        like +
+        "LIMIT 5"
+    )
+  } catch (e) {
     return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: `Something went wrong.` })
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No data found for this location" })
   }
   if (results.length === 0) {
     return res.status(StatusCodes.OK).json({
@@ -41,25 +43,25 @@ const getCountriesStartingWith___ = async (req, res) => {
 }
 
 const getFirstLvlDivisionType = async (req, res) => {
-  const { connection } = req.body
   const { country_name } = req.params
   let db_country_name = country_name.toLowerCase().replaceAll(" ", "_")
-  let [results] = await connection.execute(
-    "SELECT DISTINCT first_level_subdivision_type_name FROM " +
-      db_country_name +
-      ".`first_level_subdivision_types`"
-  )
-  if (!results) {
+  var results
+  try {
+    var [results] = await connection.execute(
+      "SELECT DISTINCT first_level_subdivision_type_name FROM " +
+        db_country_name +
+        ".`first_level_subdivision_types`"
+    )
+  } catch (e) {
     return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: `Something went wrong.` })
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No data found for this location" })
   }
   if (results.length === 0) {
     return res.status(StatusCodes.OK).json({
       msg: `Could not find first level division type for "${country_name}".`,
     })
   }
-
   results = results.map((res) => {
     return res.first_level_subdivision_type_name
   })
@@ -80,20 +82,21 @@ const getFirstLvlDivisionType = async (req, res) => {
 }
 
 const getFirstLvlDivision = async (req, res) => {
-  const { connection } = req.body
   let { country_name, fldn } = req.params
   fldn = `"%${fldn}%"`
-  const [results] = await connection.execute(
-    "SELECT * FROM " +
-      country_name +
-      ".`first_level_subdivisions` WHERE `first_level_subdivision_name` LIKE " +
-      fldn +
-      "LIMIT 10"
-  )
-  if (!results) {
+  var results
+  try {
+    var [results] = await connection.execute(
+      "SELECT * FROM " +
+        country_name +
+        ".`first_level_subdivisions` WHERE `first_level_subdivision_name` LIKE " +
+        fldn +
+        "LIMIT 5"
+    )
+  } catch (e) {
     return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: `Something went wrong.` })
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No data found for this location" })
   }
   if (results.length === 0) {
     return res.status(StatusCodes.OK).json({
@@ -103,21 +106,28 @@ const getFirstLvlDivision = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       msg: `Here are the first level divisions for ${country_name} containing "${fldn}".`,
       results,
+      latLonFound: latLonFound(results[0]),
     })
   }
 }
 
 const getSecondLvlDivisionType = async (req, res) => {
-  const { connection } = req.body
   const { country_name, flsid } = req.params
   let secondLevelDivisionTypes = []
   let db_country_name = country_name.toLowerCase().replaceAll(" ", "_")
-  const [results] = await connection.execute(
-    "SELECT DISTINCT second_level_subdivision_type_id FROM " +
-      db_country_name +
-      ".`second_level_subdivisions` WHERE first_level_subdivision_id=" +
-      flsid
-  )
+  var results
+  try {
+    var [results] = await connection.execute(
+      "SELECT DISTINCT second_level_subdivision_type_id FROM " +
+        db_country_name +
+        ".`second_level_subdivisions` WHERE first_level_subdivision_id=" +
+        flsid
+    )
+  } catch (e) {
+    return res
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No data found for this location" })
+  }
   if (!results) {
     return res
       .status(StatusCodes.BAD_REQUEST)
@@ -162,23 +172,25 @@ const getSecondLvlDivisionType = async (req, res) => {
 }
 
 const getSecondLvlDivision = async (req, res) => {
-  const { connection } = req.body
   let { country_name, fldid, sldn } = req.params
   sldn = `"%${sldn}%"`
-  const [results] = await connection.execute(
-    "SELECT * FROM " +
-      country_name +
-      ".`second_level_subdivisions` WHERE `second_level_subdivision_name` LIKE " +
-      sldn +
-      "AND first_level_subdivision_id=" +
-      fldid +
-      " LIMIT 10"
-  )
-  if (!results) {
+  var results
+  try {
+    var [results] = await connection.execute(
+      "SELECT * FROM " +
+        country_name +
+        ".`second_level_subdivisions` WHERE `second_level_subdivision_name` LIKE " +
+        sldn +
+        "AND first_level_subdivision_id=" +
+        fldid +
+        " LIMIT 5"
+    )
+  } catch (e) {
     return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({ msg: `Something went wrong.` })
+      .status(StatusCodes.NOT_FOUND)
+      .json({ msg: "No data found for this location" })
   }
+
   if (results.length === 0) {
     return res.status(StatusCodes.OK).json({
       msg: `Could not find second level divisions for ${country_name}, firstLvlId:${fldid} containing "${sldn}".`,
@@ -187,15 +199,21 @@ const getSecondLvlDivision = async (req, res) => {
     return res.status(StatusCodes.OK).json({
       msg: `Here are the second level divisions for ${country_name}, firstLvlId:${fldid} containing "${sldn}".`,
       results,
+      latLonFound: latLonFound(results[0]),
     })
   }
 }
 
+const getThirdLvlDivisionType = async (req, res) => {
+  console.log("getting third level")
+  res.status(200)
+}
+
 module.exports = {
-  connectToMySQL,
   getCountriesStartingWith___,
   getFirstLvlDivisionType,
   getFirstLvlDivision,
   getSecondLvlDivisionType,
   getSecondLvlDivision,
+  getThirdLvlDivisionType,
 }

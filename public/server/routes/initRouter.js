@@ -12,5 +12,6 @@ const {
 router
   .route("/")
   .get(getIp, getRegionInfoFromIp, getWeather, setImage, returnWeather)
+router.route("/lat/:lat/lon/:lon").get(getWeather, setImage, returnWeather)
 
 module.exports = router
